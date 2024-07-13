@@ -5,46 +5,51 @@ import type { DaoVoting } from "../target/types/dao_voting";
 describe("Test", () => {
   // Configure the client to use the local cluster
   anchor.setProvider(anchor.AnchorProvider.env());
+  const pg = new web3.PublicKey('57Xe8yVRV9mrkBM6szEZX3am3C8x36fC6ipL6Snx5852');
 
   const program = anchor.workspace.DaoVoting as anchor.Program<DaoVoting>;
-  
-  // it("initialize", async () => {
-  //   let title = "New Program Item";
+  const connection = new web3.Connection("https://api.devnet.solana.com");
 
-  //   const [propsalPda, proposalBump] = await web3.PublicKey.findProgramAddress(
-  //     [
-  //       Buffer.from("proposals"),
-  //       pg.wallets.programmeOwner.publicKey.toBuffer(),
-  //     ],
-  //     program.programId
-  //   );
+  it("initialize", async () => {
+    let title = "New Program Item";
+    let description = "This is a new program item";
 
-  //   const txHash = await program.methods
-  //     .createProposal(title)
-  //     .accounts({
-  //       proposal: propsalPda,
-  //       user: pg.wallets.programmeOwner.publicKey,
-  //       systemProgram: web3.SystemProgram.programId,
-  //     })
-  //     .signers([])
-  //     .rpc();
+    const [propsalPda, proposalBump] = await web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("proposals"),
+        pg.toBuffer(),
+      ],
+      program.programId
+    );
 
-  //   let proposal = program.account.proposal.fetch(propsalPda.toBase58());
-  //   console.log(proposal);
-  //   console.log(txHash);
-  // });
+    const txHash = await program.methods
+      .createProposal(title, description)
+      .accounts({
+        proposal: propsalPda,
+        user: pg,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .signers([])
+      .rpc();
+
+    let proposal = program.account.proposal.fetch(propsalPda);
+
+  });
 
   it("Votes", async () => {
     const [propsalPda, proposalBump] = await web3.PublicKey.findProgramAddress(
       [
         Buffer.from("proposals"),
-        pg.wallets.programmeOwner.publicKey.toBuffer(),
+        pg.toBuffer(),
       ],
       program.programId
     );
 
+    const voter = new web3.Keypair();
+    const tx = await connection.requestAirdrop(voter.publicKey, 1e9)
+
     const [voterPDA, voterBump] = await web3.PublicKey.findProgramAddress(
-      [Buffer.from("voter"), program.provider.publicKey.toBuffer()],
+      [Buffer.from("voter"), voter.publicKey.toBuffer()],
       program.programId
     );
     try {
@@ -54,12 +59,11 @@ describe("Test", () => {
         .accounts({
           proposal: propsalPda,
           voter: voterPDA,
-          user: program.provider.publicKey,
+          user: voter.publicKey,
           systemProgram: web3.SystemProgram.programId,
         })
-        .signers([program.provider.wallet.payer]) // Ensure the correct signer is provided
+        .signers([voter]) // Ensure the correct signer is provided
         .rpc();
-
       console.log("Transaction hash:", txHash);
     } catch (error) {
       console.error("Error casting vote:", error);
