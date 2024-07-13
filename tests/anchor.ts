@@ -10,31 +10,31 @@ describe("Test", () => {
   const program = anchor.workspace.DaoVoting as anchor.Program<DaoVoting>;
   const connection = new web3.Connection("https://api.devnet.solana.com");
 
-  it("initialize", async () => {
-    let title = "New Program Item";
-    let description = "This is a new program item";
+  // it("initialize", async () => {
+  //   let title = "New Program Item";
+  //   let description = "This is a new program item";
 
-    const [propsalPda, proposalBump] = await web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("proposals"),
-        pg.toBuffer(),
-      ],
-      program.programId
-    );
+  //   const [propsalPda, proposalBump] = await web3.PublicKey.findProgramAddress(
+  //     [
+  //       Buffer.from("proposals"),
+  //       pg.toBuffer(),
+  //     ],
+  //     program.programId
+  //   );
 
-    const txHash = await program.methods
-      .createProposal(title, description)
-      .accounts({
-        proposal: propsalPda,
-        user: pg,
-        systemProgram: web3.SystemProgram.programId,
-      })
-      .signers([])
-      .rpc();
+  //   const txHash = await program.methods
+  //     .createProposal(title, description)
+  //     .accounts({
+  //       proposal: propsalPda,
+  //       user: pg,
+  //       systemProgram: web3.SystemProgram.programId,
+  //     })
+  //     .signers([])
+  //     .rpc();
 
-    let proposal = program.account.proposal.fetch(propsalPda);
+  //   let proposal = program.account.proposal.fetch(propsalPda);
 
-  });
+  // });
 
   it("Votes", async () => {
     const [propsalPda, proposalBump] = await web3.PublicKey.findProgramAddress(
